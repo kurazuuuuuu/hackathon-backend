@@ -1,5 +1,15 @@
 # FastAPI エンドポイント
 ## Unity
+### ヘルスチェック
+- **Method:** `GET`
+- **Path:** `/v1/check`
+- **Response:**
+  ```json
+  {
+    "status": "ok"
+  }
+  ```
+  
 ### ユーザーログイン認証
 - **Method:** `POST`
 - **Path:** `/v1/user/login`
@@ -7,6 +17,7 @@
   ```json
   {
     "username": "string",
+    "email": "string",
     "password": "string"
   }
   ```
