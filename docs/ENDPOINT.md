@@ -44,7 +44,7 @@
       "ticket": 100,
       "cards": [
         {
-          "item_id": "card_001",
+          "card_id": "card_001",
           "amount": 1
         }
       ],
@@ -77,7 +77,7 @@
       "ticket": 100,
       "cards": [
         {
-          "item_id": "card_001",
+          "card_id": "card_001",
           "amount": 1
         }
       ],
