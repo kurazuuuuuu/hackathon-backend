@@ -30,16 +30,26 @@
   }
   ```
 
-### ユーザーデータ保存
-- **Method:** `POST`
-- **Path:** `/v1/user/save`
+### ユーザーデータ関連
+#### 保存
+- **Method:** `PUT`
+- **Path:** `/v1/user`
 - **Headers:**
   - `Authorization`: `Bearer <id_token>`
 - **Request Body:**
   ```json
   {
-    "save_data": {
-      // 任意のJSONデータ
+    "profile": {
+      "display_name": "Hero",
+      "ticket": 100,
+      "cards": [
+        {
+          "item_id": "card_001",
+          "amount": 1
+        }
+      ],
+      "created_at": "2023-01-01T00:00:00",
+      "updated_at": "2023-01-02T10:00:00"
     }
   }
   ```
@@ -48,5 +58,31 @@
   {
     "status": "success",
     "updated_at": "datetime"
+  }
+  ```
+
+#### 取得
+- **Method:** `GET`
+- **Path:** `/v1/user`
+- **Headers:**
+  - `Authorization`: `Bearer <id_token>`
+- **Request Body:** なし
+- **Response:**
+  ```json
+  {
+    "status": "success",
+    "user_id": "string",
+    "profile": {
+      "display_name": "Hero",
+      "ticket": 100,
+      "cards": [
+        {
+          "item_id": "card_001",
+          "amount": 1
+        }
+      ],
+      "created_at": "2023-01-01T00:00:00",
+      "updated_at": "2023-01-02T10:00:00"
+    }
   }
   ```

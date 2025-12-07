@@ -8,9 +8,10 @@
 * Python
     * uv
     * FastAPI
+    * boto3
 
 ### AWS
-* DynamoDB
+* Aurora and RDS
 * Cognito
 
 ### Cloudflare

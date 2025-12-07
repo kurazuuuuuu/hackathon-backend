@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 
+# FastAPIインスタンス作成
 app = FastAPI()
 
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+@app.get("/v1/check")
+async def check():
+    return {"status": "ok"}
