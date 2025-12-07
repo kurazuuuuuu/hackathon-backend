@@ -5,10 +5,10 @@
     * ユーザーデータ保存
     
 ## 技術スタック
-* Python
-    * uv
-    * FastAPI
-    * boto3
+### Python
+* uv
+* FastAPI
+* boto3
 
 ### AWS
 * Aurora and RDS
