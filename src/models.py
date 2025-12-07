@@ -9,10 +9,28 @@ from pydantic import BaseModel
 # ==========================================
 # ここでは、APIでやり取りするデータの「形」を定義します。
 # Pydantic (BaseModel) を使うことで、データの自動検証（バリデーション）が行われます。
+
 class Card(BaseModel):
-    # カード本体のモデル
+    # カード本体のモデル（所持数管理用）
     card_id: str
     amount: int
+
+
+class Deck(BaseModel):
+    """
+    デッキ編成のモデル
+    
+    制約:
+    - primary: 3枚 (固定)
+    - support + special: 合計20枚
+    """
+    deck_id: str
+    name: str
+    # Primaryカード (3枚)
+    primary_cards: List[str] = [] 
+    # Support / Specialカード (合計20枚)
+    secondary_cards: List[str] = []
+
 
 class UserGameProfile(BaseModel):
     """
@@ -34,7 +52,9 @@ class UserGameProfile(BaseModel):
     # データベースには「JSON形式のテキスト」としてまとめて保存します。
     # ゲームの仕様変更で中身が増減しても、データベースの定義変更(マイグレーション)が不要で楽です。
     # ----------------------------------------------------------------
-    cards: List[Card] = []  # 所持カード一覧 (Itemモデルのリスト)
+    cards: List[Card] = []  # 所持カード一覧
+    decks: List[Deck] = []  # デッキ一覧
+    current_deck_id: Optional[str] = None # 現在使用中のデッキID
     
     # ----------------------------------------------------------------
     # [Meta] 管理情報
