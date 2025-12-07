@@ -1,7 +1,7 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 # ==========================================
@@ -9,6 +9,10 @@ from pydantic import BaseModel, Field
 # ==========================================
 # ここでは、APIでやり取りするデータの「形」を定義します。
 # Pydantic (BaseModel) を使うことで、データの自動検証（バリデーション）が行われます。
+class Card(BaseModel):
+    # カード本体のモデル
+    card_id: str
+    amount: int
 
 class UserGameProfile(BaseModel):
     """
@@ -30,7 +34,7 @@ class UserGameProfile(BaseModel):
     # データベースには「JSON形式のテキスト」としてまとめて保存します。
     # ゲームの仕様変更で中身が増減しても、データベースの定義変更(マイグレーション)が不要で楽です。
     # ----------------------------------------------------------------
-    cards: List[Item] = []  # 所持カード一覧 (Itemモデルのリスト)
+    cards: List[Card] = []  # 所持カード一覧 (Itemモデルのリスト)
     
     # ----------------------------------------------------------------
     # [Meta] 管理情報
