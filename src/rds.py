@@ -1,41 +1,92 @@
 import boto3
-from dotenv import load_dotenv
+import json
 import os
+from typing import Optional
+from .models import UserGameProfile
+from datetime import datetime
 
 # .envから環境変数を読み込み
-load_dotenv()
+# load_dotenv() # main.pyで読み込まれる想定だが、念のためここでも使えるようにしておくかは構成次第。
+# 今回はmain.pyで読み込んでいるのでここでは省略、またはmain.pyが実行エントリポイントであることを前提とする。
 
-# Create an RDS client
-rds_client = boto3.client(
-    "rds",
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-    region_name=os.getenv("AWS_REGION"),
-)
+class RdsDataService:
+    def __init__(self):
+        self.client = boto3.client(
+            "rds-data",
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            region_name=os.getenv("AWS_REGION"),
+        )
+        self.resource_arn = os.getenv("DB_CLUSTER_ARN")
+        self.secret_arn = os.getenv("DB_SECRET_ARN")
+        self.database = os.getenv("DB_NAME", "hackathon_db") # デフォルトDB名
 
-# Create a paginator for the describe_db_clusters operation
-paginator = rds_client.get_paginator("describe_db_clusters")
+        if not self.resource_arn or not self.secret_arn:
+            # 環境変数がなくても起動は許可する（実際にDBアクセスした時点でエラーになるか、メソッドがモックされる想定）
+            print("Warning: DB_CLUSTER_ARN or DB_SECRET_ARN not set. DB operations will fail.")
 
-# Use the paginator to get a list of DB clusters
-response_iterator = paginator.paginate(
-    PaginationConfig={
-        "PageSize": 50,  # Adjust PageSize as needed
-        "StartingToken": None,
-    }
-)
+    def execute_statement(self, sql: str, parameters: list = None):
+        if parameters is None:
+            parameters = []
 
-# Iterate through the pages of the response
-clusters_found = False
-for page in response_iterator:
-    if "DBClusters" in page and page["DBClusters"]:
-        clusters_found = True
-        print("Here are your RDS Aurora clusters:")
-        for cluster in page["DBClusters"]:
-            print(
-                f"Cluster ID: {cluster['DBClusterIdentifier']}, Engine: {cluster['Engine']}"
+        try:
+            response = self.client.execute_statement(
+                resourceArn=self.resource_arn,
+                secretArn=self.secret_arn,
+                database=self.database,
+                sql=sql,
+                parameters=parameters,
+                includeResultMetadata=True
             )
+            return response
+        except Exception as e:
+            print(f"RDS Data API Error: {e}")
+            raise e
 
-if not clusters_found:
-    print("No clusters found!")
+    def get_user(self, user_id: str) -> Optional[UserGameProfile]:
+        """
+        ユーザーデータを取得する
+        Table Schema Assumption: users (id VARCHAR PK, profile JSON)
+        """
+        sql = "SELECT profile FROM users WHERE id = :id"
+        params = [{'name': 'id', 'value': {'stringValue': user_id}}]
+        
+        try:
+            response = self.execute_statement(sql, params)
+            if not response or 'records' not in response or not response['records']:
+                return None
+            
+            # response['records'][0] -> [{'stringValue': '{"display_name": ...}'}]
+            json_str = response['records'][0][0]['stringValue']
+            data = json.loads(json_str)
+            return UserGameProfile(**data)
+            
+        except Exception as e:
+            print(f"Error getting user: {e}")
+            return None
+
+    def upsert_user(self, user_id: str, profile: UserGameProfile) -> None:
+        """
+        ユーザーデータを保存（基本はINSERT ON CONFLICT Update）
+        MySQL/Aurora互換SQLを想定
+        """
+        # updated_atを更新
+        profile.updated_at = datetime.now()
+        
+        json_str = profile.model_dump_json() # Pydantic v2
+        
+        sql = """
+            INSERT INTO users (id, profile) VALUES (:id, :profile)
+            ON DUPLICATE KEY UPDATE profile = :profile
+        """
+        params = [
+            {'name': 'id', 'value': {'stringValue': user_id}},
+            {'name': 'profile', 'value': {'stringValue': json_str}}
+        ]
+        
+        self.execute_statement(sql, params)
+
+# シングルトンとしてエクスポート
+rds_service = RdsDataService()
 
 
