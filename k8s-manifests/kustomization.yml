@@ -4,4 +4,4 @@ resources:
 - backend-api.yaml
 images:
 - name: ghcr.io/kurazuuuuuu/hackathon-backend
-  newTag: 1.0.0
+  newTag: main
