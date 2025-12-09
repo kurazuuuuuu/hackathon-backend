@@ -10,7 +10,7 @@
   }
   ```
   
-### ユーザーログイン認証
+<!-- ### ユーザーログイン認証
 - **Method:** `POST`
 - **Path:** `/v1/user/login`
 - **Request Body:**
@@ -28,7 +28,7 @@
     "id_token": "string",
     "refresh_token": "string"
   }
-  ```
+  ``` -->
 
 ### ユーザーデータ関連
 #### 保存
