@@ -35,7 +35,7 @@
 - **Method:** `PUT`
 - **Path:** `/v1/user`
 - **Headers:**
-  - `Authorization`: `Bearer <id_token>`
+  - `Authorization`: `{email}:{id_token}`
 - **Request Body:**
   ```json
   {
@@ -73,7 +73,7 @@
 - **Method:** `GET`
 - **Path:** `/v1/user`
 - **Headers:**
-  - `Authorization`: `Bearer <id_token>`
+  - `Authorization`: `{email}:{id_token}`
 - **Request Body:** なし
 - **Response:**
   ```json

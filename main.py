@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Header, HTTPException, Depends
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from typing import Annotated
 from datetime import datetime
@@ -16,8 +17,19 @@ from src.auth import verify_token, AuthError
 # 環境変数の読み込み (他のモジュールが読み込まれる前に実行する必要がある)
 load_dotenv()
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 起動時にDB初期化を実行
+    try:
+        rds_service.initialize_db()
+    except Exception as e:
+        print(f"Failed to initialize database: {e}")
+        # 初期化失敗しても起動は妨げない方が良い場合もあるが、
+        # 今回はログに出して続行する
+    yield
+
 # FastAPIインスタンス作成
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 
 @app.get("/v1/check")
 async def check():
@@ -26,19 +38,27 @@ async def check():
 async def get_current_user_id(authorization: Annotated[str, Header()] = None):
     """
     AuthorizationヘッダーからユーザーIDを特定する
-    Bearer <ID_TOKEN> 形式を想定
+    {email}:{token} 形式を想定
+    - email: ユーザーID (RDSのキーとして使用)
+    - token: Cognito IDトークン (検証用)
     """
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization Header")
     
     try:
-        scheme, token = authorization.split()
-        if scheme.lower() != 'bearer':
-            raise HTTPException(status_code=401, detail="Invalid auth scheme")
+        # {email}:{token} 形式をパース
+        if ':' not in authorization:
+            raise HTTPException(status_code=401, detail="Invalid authorization format. Expected {email}:{token}")
+        
+        email, token = authorization.split(':', 1)
+        if not email or not token:
+            raise HTTPException(status_code=401, detail="Email or token is empty")
         
         # トークン検証
-        payload = verify_token(token)
-        return payload['sub']
+        verify_token(token)
+        
+        # emailをユーザーIDとして返す
+        return email
 
     except AuthError as e:
         raise HTTPException(status_code=e.status_code, detail=e.error)
