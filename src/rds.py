@@ -6,8 +6,9 @@ from .models import UserGameProfile
 from datetime import datetime
 
 # .envから環境変数を読み込み
-# load_dotenv() # main.pyで読み込まれる想定だが、念のためここでも使えるようにしておくかは構成次第。
-# 今回はmain.pyで読み込んでいるのでここでは省略、またはmain.pyが実行エントリポイントであることを前提とする。
+from dotenv import load_dotenv
+load_dotenv()
+
 
 class RdsDataService:
     def __init__(self):
