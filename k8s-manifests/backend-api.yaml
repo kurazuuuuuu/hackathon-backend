@@ -1,0 +1,87 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hackathon-backend-api
+  namespace: argocd-prod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hackathon-backend-api
+  template:
+    metadata:
+      labels:
+        app: hackathon-backend-api
+    spec:
+      imagePullSecrets:
+      - name: ghcr-registry-secret
+      containers:
+      - name: hackathon-backend-api
+        image: ghcr.io/kurazuuuuuu/hackathon-backend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2000m"
+        env:
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_access_key_id
+        - name: AWS_SECRET_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_secret_access_key
+        - name: AWS_REGION
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_region
+        - name: AWS_RDS_DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_rds_db_name
+        - name: AWS_RDS_RESOURCE_ARN
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_rds_resource_arn
+        - name: AWS_RDS_SECRET_ARN
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_rds_secret_arn
+        - name: AWS_USERPOOL_ID
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_userpool_id
+        - name: AWS_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: hackathon-secrets
+              key: aws_client_id
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hackathon-backend-api-lb
+  namespace: argocd-prod
+spec:
+  selector:
+    app: hackathon-backend-api
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: LoadBalancer
+  loadBalancerIP: 192.168.1.28

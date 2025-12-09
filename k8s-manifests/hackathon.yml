@@ -1,0 +1,35 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hackathon-backend
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: hackathon-backend=ghcr.io/kurazuuuuuu/hackathon-backend
+    argocd-image-updater.argoproj.io/hackathon-backend.update-strategy: semver
+    argocd-image-updater.argoproj.io/hackathon-backend.allow-tags: regexp:^v[0-9]+\.[0-9]+\.[0-9]+$
+    argocd-image-updater.argoproj.io/hackathon-backend.pull-secret: pullsecret:argocd/ghcr-registry-secret
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-repository: https://github.com/kurazuuuuuu/hackathon-backend.git
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
+    argocd-image-updater.argoproj.io/git-repository-credentials: argocd:git-creds
+    argocd-image-updater.argoproj.io/git-branch: main
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kurazuuuuuu/hackathon-backend
+    path: k8s-manifests
+    targetRevision: main
+    kustomize: {}
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd-prod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+  revisionHistoryLimit: 3
