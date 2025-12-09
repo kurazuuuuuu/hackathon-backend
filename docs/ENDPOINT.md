@@ -48,6 +48,14 @@
           "amount": 1
         }
       ],
+      "decks": [
+        {
+          "deck_id": "deck_1",
+          "name": "My Best Deck",
+          "primary_cards": ["hero_01", "hero_02", "hero_03"],
+          "secondary_cards": ["support_01", "support_02"]
+        }
+      ],
       "created_at": "2023-01-01T00:00:00",
       "updated_at": "2023-01-02T10:00:00"
     }
@@ -79,6 +87,14 @@
         {
           "card_id": "card_001",
           "amount": 1
+        }
+      ],
+      "decks": [
+        {
+          "deck_id": "deck_1",
+          "name": "My Best Deck",
+          "primary_cards": ["hero_01", "hero_02", "hero_03"],
+          "secondary_cards": ["support_01", "support_02"]
         }
       ],
       "created_at": "2023-01-01T00:00:00",
